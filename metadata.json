@@ -1,0 +1,5 @@
+{
+  "name": "Radix Sort Visualizer",
+  "description": "An interactive educational tool to visualize the Radix Sort algorithm step-by-step with custom or random numbers.",
+  "requestFramePermissions": []
+}
