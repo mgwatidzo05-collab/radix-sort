@@ -10,7 +10,8 @@ import {
   ChevronLeft,
   Info,
   Settings2,
-  CheckCircle2
+  CheckCircle2,
+  Download
 } from 'lucide-react';
 import { SortStep } from './types';
 import { getRadixSortSteps } from './utils/radixSort';
@@ -27,8 +28,36 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(DEFAULT_SPEED);
   const [showSettings, setShowSettings] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstallable, setIsInstallable] = useState(false);
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      setIsInstallable(false);
+      setDeferredPrompt(null);
+    }
+  };
 
   // Initialize with some random numbers
   useEffect(() => {
@@ -121,6 +150,15 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2">
+          {isInstallable && (
+            <button 
+              onClick={handleInstallClick}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20"
+            >
+              <Download size={16} />
+              Install App
+            </button>
+          )}
           <button 
             onClick={() => setShowSettings(!showSettings)}
             className={`p-2 rounded-lg transition-colors ${showSettings ? 'bg-black text-white' : 'hover:bg-black/5'}`}
